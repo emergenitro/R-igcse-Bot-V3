@@ -48,8 +48,8 @@ class Reputation(commands.Cog):
 			embed.set_image(url="attachment://repgraph.png")
 			
 			# Edit the original message to show the graph
-			await interaction.edit_original_message(embed=embed, file=file)
-		
+			await interaction.edit_original_message(embed=embed, file=file, content=None, view=None)
+
 		graphit = discord.ui.Button(label="Graph it!", style=discord.ButtonStyle.primary)
 		graphit.callback = graph_callback
 		

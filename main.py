@@ -17,12 +17,12 @@ async def on_ready():
 
 for fn in os.listdir("./commands"):
 	if fn.endswith(".py"):
-		bot.load_extension(f"commands.{fn[:-3].lower()}")
+		bot.load_extension(f"commands.{fn[:-3]}")
 		print(fn[:-3])
 
 @bot.slash_command(name="load", description="Load")
 async def load(interaction: discord.Interaction, extension: str = discord.SlashOption(name="extension", description="The Extension to load", required=True)):
-	bot.load_extension(f"commands.{extension.lower()}")
+	bot.load_extension(f"commands.{extension}")
 	await interaction.send("Extension loaded")
 
 bot.run(TOKEN)

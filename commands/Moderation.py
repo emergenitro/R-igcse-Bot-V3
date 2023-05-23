@@ -26,6 +26,9 @@ class Moderation(commands.Cog):
     # Add mod roles
     @discord.slash_command(description="Add a role to the list of mod roles (for mods)")
     async def addmod(self, interaction: discord.Interaction, role: discord.Role):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("Only administrators can use this command.")
+            return
         mod_roles = self.gpdb.get_pref('mod_roles', interaction.guild.id) or []
         if role.id not in mod_roles:
             mod_roles.append(role.id)
@@ -33,10 +36,13 @@ class Moderation(commands.Cog):
             await interaction.response.send_message(f"{role.name} has been added as a mod role.")
         else:
             await interaction.response.send_message(f"{role.name} is already a mod role.")
-                
+
     # Remove mod roles
     @discord.slash_command(description="Remove a role from the list of mod roles (for mods)")
     async def removemod(self, interaction: discord.Interaction, role: discord.Role):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("Only administrators can use this command.")
+            return
         mod_roles = self.gpdb.get_pref('mod_roles', interaction.guild.id) or []
         if role.id in mod_roles:
             mod_roles.remove(role.id)
@@ -44,6 +50,7 @@ class Moderation(commands.Cog):
             await interaction.response.send_message(f"{role.name} has been removed as a mod role.")
         else:
             await interaction.response.send_message(f"{role.name} is not a mod role.")
+
 
 
 

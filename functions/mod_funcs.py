@@ -1,7 +1,5 @@
 import time
-
 import nextcord as discrd
-
 import functions
 
 async def send_action_message(args):

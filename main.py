@@ -2,6 +2,7 @@ import os
 from nextcord.ext import commands
 import nextcord as discord
 import functions
+from dotenv import dotenv_values
 
 TOKEN = os.getenv("IGCSEBOT_TOKEN")
 
@@ -62,4 +63,4 @@ async def set_preferences(interaction: discord.Interaction,
         gpdb.set_pref("emote_channel", emote_channel.id, interaction.guild.id)
     await interaction.send("Done.")
 
-bot.run(TOKEN)
+bot.run(dotenv_values(".env")["IGCSEBOT_TOKEN"])

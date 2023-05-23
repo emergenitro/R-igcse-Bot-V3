@@ -30,7 +30,9 @@ class ReputationDB:
             return result["rep"]
 
     def change_rep(self, user_id: int, new_rep: int, guild_id: str, date):
-        self.reputation = self.db[guild_id]
+        self.reputation = self.db[str(guild_id)]
+        print(guild_id, user_id, new_rep, date)
+        print(self.reputation.find_one({"id": user_id}))
         current_rep = self.reputation.find_one({"id": user_id})["rep"]
         if current_rep == None:
             rep_gained = new_rep

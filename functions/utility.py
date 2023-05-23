@@ -1,9 +1,11 @@
 import nextcord as discord
-
+import functions
 
 async def isModerator(member: discord.Member):
     roles = [role.id for role in member.roles]
-    if 578170681670369290 in roles or 784673059906125864 in roles:  # r/igcse moderator role ids
+    gpdb = functions.preferences.gpdb
+    mod_roles = gpdb.get_pref('mod_roles', member.guild.id)
+    if mod_roles and any(role in mod_roles for role in roles):
         return True
     elif member.guild_permissions.administrator:
         return True

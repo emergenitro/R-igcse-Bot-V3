@@ -23,12 +23,38 @@ class Moderation(commands.Cog):
 
         await functions.mod_funcs.send_action_message({"bot": self.bot, "guild_id": guild.id, "user_name": guild.get_member(user_id), "user_id": user_id, "action_type": "Timeout", "moderator": "Automod", "reason": rule.name, "seconds": timeout_time_seconds})
     
+    # Add mod roles
+    @discord.slash_command(description="Add a role to the list of mod roles (for mods)")
+    async def addmod(self, interaction: discord.Interaction, role: discord.Role):
+        mod_roles = self.gpdb.get_pref('mod_roles', interaction.guild.id) or []
+        if role.id not in mod_roles:
+            mod_roles.append(role.id)
+            self.gpdb.set_pref('mod_roles', mod_roles, interaction.guild.id)
+            await interaction.response.send_message(f"{role.name} has been added as a mod role.")
+        else:
+            await interaction.response.send_message(f"{role.name} is already a mod role.")
+                
+    # Remove mod roles
+    @discord.slash_command(description="Remove a role from the list of mod roles (for mods)")
+    async def removemod(self, interaction: discord.Interaction, role: discord.Role):
+        mod_roles = self.gpdb.get_pref('mod_roles', interaction.guild.id) or []
+        if role.id in mod_roles:
+            mod_roles.remove(role.id)
+            self.gpdb.set_pref('mod_roles', mod_roles, interaction.guild.id)
+            await interaction.response.send_message(f"{role.name} has been removed as a mod role.")
+        else:
+            await interaction.response.send_message(f"{role.name} is not a mod role.")
+
+
+
     
     @discord.slash_command(description="Check a user's previous offenses (warns/timeouts/bans)")
     async def history(self, interaction: discord.Interaction,
                 user: discord.User = discord.SlashOption(name="user", description="User to view history of", required=True)):
-        if not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator"):
-            await interaction.send("You are not permitted to use this command.", ephemeral=True)
+        mod = interaction.user
+        if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         await interaction.response.defer()
         modlog = self.gpdb.get_pref("modlog_channel", interaction.guild.id)
         warnlog = self.gpdb.get_pref("warnlog_channel", interaction.guild.id)
@@ -63,9 +89,9 @@ class Moderation(commands.Cog):
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return
-        # if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         await interaction.response.defer()
         warnlog_channel = self.gpdb.get_pref("warnlog_channel", interaction.guild.id)
         if warnlog_channel:
@@ -88,9 +114,9 @@ class Moderation(commands.Cog):
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return
-        # if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         await interaction.response.defer()
         if time_.lower() == "unspecified" or time_.lower() == "permanent" or time_.lower() == "undecided":
             seconds = 86400 * 28
@@ -131,9 +157,9 @@ class Moderation(commands.Cog):
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return
-        # if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         await interaction.response.defer()
         await user.edit(timeout=None)
 
@@ -154,9 +180,9 @@ class Moderation(commands.Cog):
         if type(user) is not discord.Member:
             await interaction.send("User is not a member of the server", ephemeral=True)
             return 
-        # if await functions.utility.isModerator(user) or not await functions.utility.isModerator(interaction.user) or await functions.utility.hasRole(interaction.user, "Temp Mod"):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if await functions.utility.isModerator(user) or not await functions.utility.isModerator(interaction.user) or await functions.utility.hasRole(interaction.user, "Temp Mod"):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return
@@ -183,9 +209,9 @@ class Moderation(commands.Cog):
                                                     required=True)):
         action_type = "Unban"
         mod = interaction.user.mention
-        # if not await functions.utility.isModerator(interaction.user):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if not await functions.utility.isModerator(interaction.user):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         await functions.mod_funcs.send_action_message({"bot": self.bot, "guild_id": interaction.guild.id, "user_name": user, "user_id": user.id, "action_type": action_type, "moderator": mod})
 
         await interaction.response.defer()
@@ -200,9 +226,9 @@ class Moderation(commands.Cog):
                 reason: str = discord.SlashOption(name="reason", description="Reason for kick", required=True)):
         action_type = "Kick"
         mod = interaction.user.mention
-        # if await functions.utility.isModerator(user) or not await functions.utility.isModerator(interaction.user):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if await functions.utility.isModerator(user) or not await functions.utility.isModerator(interaction.user):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return

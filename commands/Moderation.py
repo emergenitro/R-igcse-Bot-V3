@@ -1,4 +1,5 @@
 import datetime
+import time
 import nextcord as discord
 from nextcord.ext import commands
 import re
@@ -16,24 +17,24 @@ class Moderation(commands.Cog):
             "modlog_channel", message.guild.id)
         warnlog_channel_id = self.gpdb.get_pref(
             "warnlog_channel", message.guild.id)
+
         if message.channel.id in [modlog_channel_id, warnlog_channel_id]:
             match = re.search(r'Case #(\d+)', message.content)
+
             if match:
                 deleted_case_no = int(match.group(1))
                 guild_infractions = self.gpdb.db['infractions'].find_one(
                     {'guild_id': message.guild.id})
+
                 if guild_infractions:
-                    if message.channel.id == modlog_channel_id:
-                        field_name = 'modactions'
-                    else:
-                        field_name = 'warns'
+                    field_name = 'modactions' if message.channel.id == modlog_channel_id else 'warns'
+
                     for infraction in guild_infractions.get(field_name, []):
                         if infraction['case_no'] > deleted_case_no:
                             infraction['case_no'] -= 1
-                    self.gpdb.db['infractions'].update_one(
-                        {'guild_id': message.guild.id},
-                        {'$set': {field_name: guild_infractions[field_name]}}
-                    )
+
+                    self.gpdb.db['infractions'].update_one({'guild_id': message.guild.id},
+                                                           {'$set': {field_name: guild_infractions[field_name]}})
 
                     async for log_message in message.channel.history():
                         match = re.search(r'Case #(\d+)', log_message.content)
@@ -154,9 +155,9 @@ class Moderation(commands.Cog):
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return
-        if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
-            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-            return
+        # if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
+        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+        #     return
         await interaction.response.defer()
         if time_.lower() == "unspecified" or time_.lower() == "permanent" or time_.lower() == "undecided":
             seconds = 86400 * 28
@@ -180,10 +181,7 @@ class Moderation(commands.Cog):
 
         message = await functions.mod_funcs.send_action_message({"bot": self.bot, "guild_id": interaction.guild.id, "user_name": user, "user_id": user.id, "action_type": action_type, "moderator": mod, "reason": reason, "seconds": seconds})
 
-        await user.send(f'''You have been given a timeout on the r/IGCSE server 
-    Reason: {reason}
-    Duration: {message}
-    Until: <t:{int(time.time()) + seconds}> (<t:{int(time.time()) + seconds}:R>)''')
+        await user.send(f'''You have been given a timeout on the r/IGCSE server\nReason: {reason}\nDuration: {message}\nUntil: <t:{int(time.time()) + seconds}> (<t:{int(time.time()) + seconds}:R>)''')
         await interaction.send(
             f"{str(user)} has been put on time out until <t:{int(time.time()) + seconds}>, which is <t:{int(time.time()) + seconds}:R>.")
 
@@ -286,7 +284,7 @@ class Moderation(commands.Cog):
                           option: str = discord.SlashOption(description="Specify whether it is an infraction or a warn", required=True, choices=["infraction", "warn"])):
         resp = await functions.mod_funcs.edit_action_message({"bot": self.bot, "guild_id": interaction.guild.id, "interaction": interaction}, case_no, new_reason, option)
         if resp:
-            await interaction.response.send_message(f"Updated the reason for case number {case_no} to '{new_reason}'.")
+            await interaction.response.send_message(f"Updated the reason for Case {case_no} to '{new_reason}'.", ephemeral=True)
 
 
 def setup(bot):

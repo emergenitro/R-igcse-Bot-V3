@@ -27,7 +27,7 @@ class Reputation(commands.Cog):
             rep = 0
 
         embed = discord.Embed(
-            title=f"{user.display_name}'s Reputation", description=f"{user} has {rep} rep.")
+            title=f"{user.display_name}'s Reputation", description=f"{user} has {rep} rep.", color=discord.Color.yellow())
 
         async def graph_callback(interaction):
             await interaction.response.edit_message(content="Generating graph...", embed=None, view=None)
@@ -35,7 +35,7 @@ class Reputation(commands.Cog):
             df = self.repDB.graph_rep(user.id, str(interaction.guild.id))
             fig = px.line(df, x="date", y="rep",
                           title=f"{user.display_name}'s Reputation Over Time")
-            fig.update_layout(xaxis_title="Date", yaxis_title="Reputation")
+            fig.update_layout(xaxis_title="Date", yaxis_title="Reputation", )
 
             buf = io.BytesIO()
             fig.write_image(buf, format="png")
@@ -43,7 +43,7 @@ class Reputation(commands.Cog):
             file = discord.File(buf, filename="repgraph.png")
 
             embed = discord.Embed(
-                title=f"{user.display_name}'s Reputation Over Time")
+                title=f"{user.display_name}'s Reputation Over Time", color=discord.Color.yellow())
             embed.set_image(url="attachment://repgraph.png")
 
             await interaction.edit_original_message(embed=embed, file=file, content=None, view=None)

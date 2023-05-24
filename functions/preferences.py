@@ -1,6 +1,7 @@
 import os
 import pymongo
 
+
 class GuildPreferencesDB:
     def __init__(self, link: str):
         self.client = pymongo.MongoClient(

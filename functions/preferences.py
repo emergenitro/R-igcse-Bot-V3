@@ -1,6 +1,5 @@
 import os
 import pymongo
-from dotenv import dotenv_values
 
 class GuildPreferencesDB:
     def __init__(self, link: str):
@@ -23,5 +22,5 @@ class GuildPreferencesDB:
             return result.get(pref, None)
 
 
-LINK = dotenv_values(".env")["MONGO_LINK"]
+LINK = os.environ.get('MONGO_LINK')
 gpdb = GuildPreferencesDB(LINK)

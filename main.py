@@ -26,6 +26,11 @@ async def load(interaction: discord.Interaction, extension: str = discord.SlashO
     bot.load_extension(f"commands.{extension}")
     await interaction.send("Extension loaded")
 
+@bot.slash_command(name="reload", description="Reload")
+async def load(interaction: discord.Interaction, extension: str = discord.SlashOption(name="extension", description="The Extension to load", required=True)):
+    bot.reload_extension(f"commands.{extension}")
+    await interaction.send("Extension reloaded")
+
 @bot.slash_command(description="Set server preferences (for mods)")
 async def set_preferences(interaction: discord.Interaction,
                           modlog_channel: discord.abc.GuildChannel = discord.SlashOption(name="modlog_channel",
@@ -47,9 +52,9 @@ async def set_preferences(interaction: discord.Interaction,
                               description="Channel for emote voting to take place.",
                               required=False)):
     gpdb = functions.preferences.gpdb
-    # if not await isModerator(interaction.user):
-    #     await interaction.send("You are not authorized to perform this action", ephemeral=True)
-    #     return
+    if not await functions.utility.isModerator(interaction.user):
+        await interaction.send("You are not authorized to perform this action", ephemeral=True)
+        return
     await interaction.response.defer()
     if modlog_channel:
         gpdb.set_pref('modlog_channel', modlog_channel.id, interaction.guild.id)

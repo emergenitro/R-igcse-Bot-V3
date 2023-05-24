@@ -1,12 +1,43 @@
 import datetime
 import nextcord as discord
 from nextcord.ext import commands
+import re
 import functions
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.gpdb = functions.preferences.gpdb
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        modlog_channel_id = functions.preferences.gpdb.get_pref("modlog_channel", message.guild.id)
+        warnlog_channel_id = functions.preferences.gpdb.get_pref("warnlog_channel", message.guild.id)
+        if message.channel.id in [modlog_channel_id, warnlog_channel_id]:
+            match = re.search(r'Case #(\d+)', message.content)
+            if match:
+                deleted_case_no = int(match.group(1))
+                guild_infractions = functions.preferences.gpdb.db['infractions'].find_one({'guild_id': message.guild.id})
+                if guild_infractions:
+                    if message.channel.id == modlog_channel_id:
+                        field_name = 'modactions'
+                    else:
+                        field_name = 'warns'
+                    for infraction in guild_infractions.get(field_name, []):
+                        if infraction['case_no'] > deleted_case_no:
+                            infraction['case_no'] -= 1
+                    functions.preferences.gpdb.db['infractions'].update_one(
+                        {'guild_id': message.guild.id},
+                        {'$set': {field_name: guild_infractions[field_name]}}
+                    )
+                    
+                    async for log_message in message.channel.history():
+                        match = re.search(r'Case #(\d+)', log_message.content)
+                        if match:
+                            case_no = int(match.group(1))
+                            if case_no > deleted_case_no:
+                                new_content = log_message.content.replace(f'Case #{case_no}', f'Case #{case_no - 1}')
+                                await log_message.edit(content=new_content)
+
 
     @commands.Cog.listener()
     async def on_auto_moderation_action_execution(self, automod_execution):
@@ -50,9 +81,6 @@ class Moderation(commands.Cog):
             await interaction.response.send_message(f"{role.name} has been removed as a mod role.")
         else:
             await interaction.response.send_message(f"{role.name} is not a mod role.")
-
-
-
 
     
     @discord.slash_command(description="Check a user's previous offenses (warns/timeouts/bans)")
@@ -103,6 +131,7 @@ class Moderation(commands.Cog):
         warnlog_channel = self.gpdb.get_pref("warnlog_channel", interaction.guild.id)
         if warnlog_channel:
             await functions.mod_funcs.send_action_message({"bot": self.bot, "guild_id": interaction.guild.id, "user_name": user, "user_id": user.id, "action_type": action_type, "moderator": mod, "reason": reason})
+        await interaction.send(f"{str(user)} has been warned.")
         channel = await user.create_dm()
         await channel.send(
             f"You have been warned in r/IGCSE by moderator {mod} for \"{reason}\".\n\nPlease be mindful in your further interaction in the server to avoid further action being taken against you, such as a timeout or a ban.")
@@ -248,6 +277,14 @@ class Moderation(commands.Cog):
         await functions.mod_funcs.send_action_message({"bot": self.bot, "guild_id": interaction.guild.id, "user_name": user, "user_id": user.id, "action_type": action_type, "moderator": mod})
         await interaction.guild.kick(user)
         await interaction.send(f"{str(user)} has been kicked.")
+    
+    @discord.slash_command(description="Edit the reason of an infraction or warn")
+    async def edit_action(self, interaction: discord.Interaction, case_no: int = discord.SlashOption(description="The case number of the infraction or warn", required=True),
+                        new_reason: str = discord.SlashOption(description="The new reason for the infraction or warn", required=True),
+                        option: str = discord.SlashOption(description="Specify whether it is an infraction or a warn", required=True, choices=["infraction", "warn"])):
+        resp = await functions.mod_funcs.edit_action_message({"bot": self.bot, "guild_id": interaction.guild.id, "interaction": interaction}, case_no, new_reason, option)
+        if resp:
+            await interaction.response.send_message(f"Updated the reason for case number {case_no} to '{new_reason}'.")
 
 
 def setup(bot):

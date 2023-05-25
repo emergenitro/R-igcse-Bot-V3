@@ -23,5 +23,5 @@ class GuildPreferencesDB:
             return result.get(pref, None)
 
 
-LINK = os.environ.get("MONGO_LINK")
+LINK = os.environ.get('MONGO_LINK')
 gpdb = GuildPreferencesDB(LINK)

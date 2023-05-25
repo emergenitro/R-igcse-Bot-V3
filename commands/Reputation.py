@@ -12,9 +12,9 @@ class Reputation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if functions.preferences.gpdb.get_pref('rep_enabled', message.guild.id):
-            # If message is replying to another message
-            await functions.rep_funcs.repMessages(message)
+        if message.author != self.bot.user:
+            if functions.preferences.gpdb.get_pref('rep_enabled', message.guild.id):
+                await functions.rep_funcs.repMessages(message)
 
     @discord.slash_command(description="View someone's current rep")
     async def rep(self, interaction: discord.Interaction,
@@ -26,20 +26,16 @@ class Reputation(commands.Cog):
         if rep is None:
             rep = 0
 
-        # Create an embed with the user's rep
         embed = discord.Embed(
-            title=f"{user.display_name}'s Reputation", description=f"{user} has {rep} rep.")
+            title=f"{user.display_name}'s Reputation", description=f"{user} has {rep} rep.", color=discord.Color.yellow())
 
-        # Create a button with a callback function
         async def graph_callback(interaction):
-            # Edit the original message to show "Loading..."
             await interaction.response.edit_message(content="Generating graph...", embed=None, view=None)
 
-            # Call your graph function here and store the result in df
             df = self.repDB.graph_rep(user.id, str(interaction.guild.id))
             fig = px.line(df, x="date", y="rep",
                           title=f"{user.display_name}'s Reputation Over Time")
-            fig.update_layout(xaxis_title="Date", yaxis_title="Reputation")
+            fig.update_layout(xaxis_title="Date", yaxis_title="Reputation", )
 
             buf = io.BytesIO()
             fig.write_image(buf, format="png")
@@ -47,21 +43,18 @@ class Reputation(commands.Cog):
             file = discord.File(buf, filename="repgraph.png")
 
             embed = discord.Embed(
-                title=f"{user.display_name}'s Reputation Over Time")
+                title=f"{user.display_name}'s Reputation Over Time", color=discord.Color.yellow())
             embed.set_image(url="attachment://repgraph.png")
 
-            # Edit the original message to show the graph
             await interaction.edit_original_message(embed=embed, file=file, content=None, view=None)
 
         graphit = discord.ui.Button(
             label="Graph it!", style=discord.ButtonStyle.primary, emoji="📈")
         graphit.callback = graph_callback
 
-        # Create a view with the button
         view = discord.ui.View(timeout=120)
         view.add_item(graphit)
 
-        # Send the embed with the view
         await interaction.send(embed=embed, view=view, ephemeral=False)
 
     @discord.slash_command(description="Change someone's current rep (for mods)")

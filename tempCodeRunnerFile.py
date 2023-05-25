@@ -1,0 +1,1 @@
+gpdb = functions.preferences.gpdb

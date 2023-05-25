@@ -1,1 +1,1 @@
-from functions import preferences, rep_funcs, utility, mod_funcs
+from functions import preferences, rep_funcs, utility, mod_funcs, log_funcs

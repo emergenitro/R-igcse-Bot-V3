@@ -32,6 +32,12 @@ async def load(interaction: discord.Interaction, extension: str = discord.SlashO
     await interaction.send("Extension reloaded")
 
 
+@bot.slash_command(name="unload", description="Unload")
+async def unload(interaction: discord.Interaction, extension: str = discord.SlashOption(name="extension", description="The Extension to unload", required=True)):
+    bot.unload_extension(f"commands.{extension}")
+    await interaction.send("Extension unloaded")
+
+
 @bot.slash_command(description="Set server preferences (for mods)")
 async def set_preferences(interaction: discord.Interaction,
                           modlog_channel: discord.abc.GuildChannel = discord.SlashOption(name="modlog_channel",
@@ -47,6 +53,10 @@ async def set_preferences(interaction: discord.Interaction,
                           warnlog_channel: discord.abc.GuildChannel = discord.SlashOption(
                               name="warnlog_channel",
                               description="Channel for warns to be logged.",
+                              required=False),
+                          log_channel: discord.abc.GuildChannel = discord.SlashOption(
+                              name="log_channel",
+                              description="Channel for bot logs to be logged.",
                               required=False),
                           emote_channel: discord.abc.GuildChannel = discord.SlashOption(
                               name="emote_channel",
@@ -68,6 +78,8 @@ async def set_preferences(interaction: discord.Interaction,
     if warnlog_channel:
         gpdb.set_pref("warnlog_channel", warnlog_channel.id,
                       interaction.guild.id)
+    if log_channel:
+        gpdb.set_pref("log_channel", log_channel.id, interaction.guild.id)
     if emote_channel:
         gpdb.set_pref("emote_channel", emote_channel.id, interaction.guild.id)
     await interaction.send("Done.")

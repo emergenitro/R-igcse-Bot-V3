@@ -155,9 +155,9 @@ class Moderation(commands.Cog):
         if await functions.utility.is_banned(user, interaction.guild):
             await interaction.send("User is banned from the server!", ephemeral=True)
             return
-        # if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
-        #     await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
-        #     return
+        if await functions.utility.isModerator(user) or (not await functions.utility.isModerator(interaction.user) and not await functions.utility.hasRole(interaction.user, "Chat Moderator")):
+            await interaction.send(f"Sorry {mod}, you don't have the permission to perform this action.", ephemeral=True)
+            return
         await interaction.response.defer()
         if time_.lower() == "unspecified" or time_.lower() == "permanent" or time_.lower() == "undecided":
             seconds = 86400 * 28

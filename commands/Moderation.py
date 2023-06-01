@@ -10,6 +10,8 @@ class Moderation(commands.Cog):
         self.gpdb = functions.preferences.gpdb
     @commands.Cog.listener()
     async def on_message_delete(self, message):
+        if not message.guild:
+            return
         modlog_channel_id = functions.preferences.gpdb.get_pref("modlog_channel", message.guild.id)
         warnlog_channel_id = functions.preferences.gpdb.get_pref("warnlog_channel", message.guild.id)
         if message.channel.id in [modlog_channel_id, warnlog_channel_id]:

@@ -30,13 +30,6 @@ class Modmail(commands.Cog):
                 reaction, user = await self.bot.wait_for('reaction_add', check=check)
                 guild = mutual_guilds[int(str(reaction)[0])-1]
 
-            forum_channel = discord.utils.get(guild.channels, name='modmail', type=discord.ChannelType.forum)
-            if forum_channel is None:
-                forum_channel = await guild.create_forum_channel(name='modmail', topic="Modmail for DMs")
-            thread = discord.utils.get(forum_channel.threads, name=f"{message.author}")
-            if thread is None:
-                thread = await forum_channel.create_thread(name=f"{message.author}", auto_archive_duration=60, content="New DM received.")
-
             if functions.preferences.gpdb.get_pref("modmail_channel", guild.id): embed = discord.Embed(title="Message Received", description=f"This message will be sent to the mods of the {guild.name} server. Are you sure you want to send this?\nClick on the :white_check_mark: to confirm, and :x: to terminate this conversation", colour=discord.Colour.yellow())
             else:
                 embed = discord.Embed(title="Message Declined", description=f"{guild.name} has not yet setup modmail. Use /set_preferences to set it up", colour=discord.Colour.red())
@@ -51,6 +44,12 @@ class Modmail(commands.Cog):
                 return user == message.author and str(reaction.emoji) in ['✅', '❌']
             reaction, user = await self.bot.wait_for('reaction_add', check=check)
             if str(reaction.emoji) == '✅':
+                forum_channel = discord.utils.get(guild.channels, name='modmail', type=discord.ChannelType.forum)
+                if forum_channel is None:
+                    forum_channel = await guild.create_forum_channel(name='modmail', topic="Modmail for DMs")
+                thread = discord.utils.get(forum_channel.threads, name=f"{message.author}")
+                if thread is None:
+                    thread = await forum_channel.create_thread(name=f"{message.author}", auto_archive_duration=60, content="New DM received.")
                 embed = discord.Embed(title="Message Sent", description=f"Your message has been sent to the mods of the {guild.name} server.", colour=discord.Colour.green())
                 embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                 await msg.edit(embed=embed)
@@ -68,7 +67,7 @@ class Modmail(commands.Cog):
                 await msg.delete()
 
         else:
-            modlog_channel_id = functions.preferences.gpdb.get_pref("modmail_channel", message.guild.id)
+            modmail_channel_id = functions.preferences.gpdb.get_pref("modmail_channel", message.guild.id)
             if str(message.channel.parent) == "modmail":
                 username, discriminator = message.channel.name.split('#')
                 user = discord.utils.find(lambda u: u.name == username and u.discriminator == discriminator, self.bot.users)
@@ -79,7 +78,7 @@ class Modmail(commands.Cog):
                                         description=f"DM Channel with {member} has been closed by the moderators of r/IGCSE, without notifying the user.", colour=discord.Colour.green())
                     embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                     await message.channel.delete()
-                    await self.bot.get_channel(modlog_channel_id).send(embed=embed)
+                    await self.bot.get_channel(modmail_channel_id).send(embed=embed)
                     return
                 channel = await member.create_dm()  
                 if message.content == ".close":
@@ -88,7 +87,7 @@ class Modmail(commands.Cog):
                     embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                     await channel.send(embed=embed)
                     await message.channel.delete()
-                    await self.bot.get_channel(modlog_channel_id).send(embed=embed)
+                    await self.bot.get_channel(modmail_channel_id).send(embed=embed)
                     return
                 embed = discord.Embed(title=f"Message from {message.guild.name} Moderators",
                                         description=message.clean_content, colour=discord.Colour.green())

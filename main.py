@@ -2,6 +2,9 @@ import os
 from nextcord.ext import commands
 import nextcord as discord
 import functions
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TOKEN = os.getenv("IGCSEBOT_TOKEN")
 
@@ -57,7 +60,7 @@ async def set_preferences(interaction: discord.Interaction,
                               description="Channel for modmail to take place.",
                               required=False)):
     gpdb = functions.preferences.gpdb
-    if not await functions.utility.isModerator(interaction.user):
+    if await functions.utility.isModerator(interaction.user):
         options = {
                 "modlog_channel": modlog_channel,
                 "rep_enabled": rep_enabled,

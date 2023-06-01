@@ -19,7 +19,6 @@ class Moderation(commands.Cog):
         warnlog_channel_id = self.gpdb.get_pref("warnlog_channel", message.guild.id)
         if message.channel.id in [modlog_channel_id, warnlog_channel_id]:
             match = re.search(r'Case #(\d+)', message.content)
-
             if match:
                 deleted_case_no = int(match.group(1))
                 guild_infractions = self.gpdb.db['infractions'].find_one(

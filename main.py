@@ -2,7 +2,6 @@ import os
 from nextcord.ext import commands
 import nextcord as discord
 import functions
-from dotenv import dotenv_values
 
 TOKEN = os.getenv("IGCSEBOT_TOKEN")
 
@@ -26,10 +25,12 @@ async def load(interaction: discord.Interaction, extension: str = discord.SlashO
     bot.load_extension(f"commands.{extension}")
     await interaction.send("Extension loaded")
 
+
 @bot.slash_command(name="reload", description="Reload")
 async def load(interaction: discord.Interaction, extension: str = discord.SlashOption(name="extension", description="The Extension to load", required=True)):
     bot.reload_extension(f"commands.{extension}")
     await interaction.send("Extension reloaded")
+
 
 @bot.slash_command(description="Set server preferences (for mods)")
 async def set_preferences(interaction: discord.Interaction,
@@ -56,21 +57,22 @@ async def set_preferences(interaction: discord.Interaction,
                               description="Channel for modmail to take place.",
                               required=False)):
     gpdb = functions.preferences.gpdb
-    options = {
-            "modlog_channel": modlog_channel,
-            "rep_enabled": rep_enabled,
-            "suggestions_channel": suggestions_channel,
-            "warnlog_channel": warnlog_channel,
-            "emote_channel": emote_channel,
-            "modmail_channel": modmail_channel
-        }
+    if not await functions.utility.isModerator(interaction.user):
+        options = {
+                "modlog_channel": modlog_channel,
+                "rep_enabled": rep_enabled,
+                "suggestions_channel": suggestions_channel,
+                "warnlog_channel": warnlog_channel,
+                "emote_channel": emote_channel,
+                "modmail_channel": modmail_channel
+            }
 
-    for pref_name, option in options.items():
-        if option is not None:
-            if isinstance(option, discord.abc.GuildChannel):
-                gpdb.set_pref(pref_name, option.id, interaction.guild.id)
-            elif isinstance(option, bool):
-                gpdb.set_pref(pref_name, option, interaction.guild.id)
+        for pref_name, option in options.items():
+            if option is not None:
+                if isinstance(option, discord.abc.GuildChannel):
+                    gpdb.set_pref(pref_name, option.id, interaction.guild.id)
+                elif isinstance(option, bool):
+                    gpdb.set_pref(pref_name, option, interaction.guild.id)
     await interaction.send("Done.")
 
-bot.run(dotenv_values(".env")["IGCSEBOT_TOKEN"])
+bot.run(TOKEN)

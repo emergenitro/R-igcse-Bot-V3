@@ -12,12 +12,11 @@ class Reputation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if not message.guild:
+            return
         if message.author != self.bot.user:
-            try:
-                if functions.preferences.gpdb.get_pref('rep_enabled', message.guild.id):
-                    await functions.rep_funcs.repMessages(message)
-            except:
-                pass
+            if functions.preferences.gpdb.get_pref('rep_enabled', message.guild.id):
+                await functions.rep_funcs.repMessages(message)
 
     @discord.slash_command(description="View someone's current rep")
     async def rep(self, interaction: discord.Interaction,

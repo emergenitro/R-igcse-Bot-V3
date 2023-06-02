@@ -2,9 +2,6 @@ import os
 from nextcord.ext import commands
 import nextcord as discord
 import functions
-from dotenv import load_dotenv
-
-load_dotenv()
 
 TOKEN = os.getenv("IGCSEBOT_TOKEN")
 

@@ -13,14 +13,12 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        modlog_channel_id = self.gpdb.get_pref(
-            "modlog_channel", message.guild.id)
-        warnlog_channel_id = self.gpdb.get_pref(
-            "warnlog_channel", message.guild.id)
-
+        if not message.guild:
+            return
+        modlog_channel_id = self.gpdb.get_pref("modlog_channel", message.guild.id)
+        warnlog_channel_id = self.gpdb.get_pref("warnlog_channel", message.guild.id)
         if message.channel.id in [modlog_channel_id, warnlog_channel_id]:
             match = re.search(r'Case #(\d+)', message.content)
-
             if match:
                 deleted_case_no = int(match.group(1))
                 guild_infractions = self.gpdb.db['infractions'].find_one(
@@ -117,7 +115,7 @@ class Moderation(commands.Cog):
                 text = ('\n\n'.join(history))[:1900]
                 await interaction.send(f"{user}'s Moderation History:\n```{text}```", ephemeral=False)
         else:
-            await interaction.send("Please set up your moglog and warnlog through /set_preferences first!")
+            await interaction.send("Please set up your modlog and warnlog through /set_preferences first!")
 
     @discord.slash_command(description="Warn a user (for mods)")
     async def warn(self, interaction: discord.Interaction,

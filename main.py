@@ -51,25 +51,28 @@ async def set_preferences(interaction: discord.Interaction,
                           emote_channel: discord.abc.GuildChannel = discord.SlashOption(
                               name="emote_channel",
                               description="Channel for emote voting to take place.",
+                              required=False),
+                          modmail_channel: discord.abc.GuildChannel = discord.SlashOption(
+                              name="modmail_channel",
+                              description="Channel for modmail to take place.",
                               required=False)):
     gpdb = functions.preferences.gpdb
-    if not await functions.utility.isModerator(interaction.user):
-        await interaction.send("You are not authorized to perform this action", ephemeral=True)
-        return
-    await interaction.response.defer()
-    if modlog_channel:
-        gpdb.set_pref('modlog_channel', modlog_channel.id,
-                      interaction.guild.id)
-    if rep_enabled:
-        gpdb.set_pref('rep_enabled', rep_enabled, interaction.guild.id)
-    if suggestions_channel:
-        gpdb.set_pref("suggestions_channel",
-                      suggestions_channel.id, interaction.guild.id)
-    if warnlog_channel:
-        gpdb.set_pref("warnlog_channel", warnlog_channel.id,
-                      interaction.guild.id)
-    if emote_channel:
-        gpdb.set_pref("emote_channel", emote_channel.id, interaction.guild.id)
+    if await functions.utility.isModerator(interaction.user):
+        options = {
+                "modlog_channel": modlog_channel,
+                "rep_enabled": rep_enabled,
+                "suggestions_channel": suggestions_channel,
+                "warnlog_channel": warnlog_channel,
+                "emote_channel": emote_channel,
+                "modmail_channel": modmail_channel
+            }
+
+        for pref_name, option in options.items():
+            if option is not None:
+                if isinstance(option, discord.abc.GuildChannel):
+                    gpdb.set_pref(pref_name, option.id, interaction.guild.id)
+                elif isinstance(option, bool):
+                    gpdb.set_pref(pref_name, option, interaction.guild.id)
     await interaction.send("Done.")
 
 bot.run(TOKEN)

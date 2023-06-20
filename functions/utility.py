@@ -2,7 +2,7 @@ import nextcord as discord
 import functions
 
 async def isModerator(member: discord.Member):
-    roles = [role.id for role in member.roles]
+    roles = [role.id for role in member.roles if role is not None]
     gpdb = functions.preferences.gpdb
     mod_roles = gpdb.get_pref('mod_roles', member.guild.id)
     if mod_roles and any(role in mod_roles for role in roles):

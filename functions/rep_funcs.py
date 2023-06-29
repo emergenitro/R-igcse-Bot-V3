@@ -73,29 +73,20 @@ repDB = ReputationDB(functions.preferences.LINK)
 
 
 async def isThanks(text):
-    alternatives = ['thanks', 'thank you', 'thx', 'tysm',
-                    'thank u', 'thnks', 'tanks', "thanku", "tyvm", "thankyou"]
-    if "ty" in text.lower().split():
-        return True
-    else:
-        for alternative in alternatives:
-            if alternative in text.lower():
-                return True
+    thankForms = ['thanks', 'thank you', 'thx', 'tysm', 'thank u', 'thnks', 'tanks', "thanku", "tyvm", "thankyou"]
+    lowerText = text.lower()
+    for form in thankForms:
+        if form in lowerText:
+            return True
+    return False
 
 
 async def isWelcome(text):
-    alternatives = ["you're welcome", "your welcome",
-                    "ur welcome", "your welcome", 'no problem']
-    alternatives_2 = ["np", "np!", "yw", "yw!"]
-    if "welcome" == text.lower():
-        return True
-    else:
-        for alternative in alternatives:
-            if alternative in text.lower():
-                return True
-        for alternative in alternatives_2:
-            if alternative in text.lower().split() or alternative == text.lower():
-                return True
+    welcomeForms = ["welcome", "you're welcome", "ur welcome", "your welcome", 'no problem', "np", "yw"]
+    lowerText = text.lower()
+    for form in welcomeForms:
+        if form in text:
+            return True
     return False
 
 
@@ -108,6 +99,7 @@ async def repMessages(message):
             msg) and (
             await isWelcome(message.content)):
         repped = [message.author]
+
     elif await isThanks(message.content):
         for mention in message.mentions:
             if mention == message.author:

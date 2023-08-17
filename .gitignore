@@ -1,8 +1,9 @@
 # Files
 .DS_Store
 .vscode
+.idea
 
-# Byte-compiled / optimized / DLL files
+    # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class

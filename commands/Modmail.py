@@ -75,7 +75,7 @@ class Modmail(commands.Cog):
                     member = await message.guild.fetch_member(user.id)
                 if message.content == ".sclose":
                     embed = discord.Embed(title="DM Channel Silently Closed",
-                                        description=f"DM Channel with {member} has been closed by the moderators of r/IGCSE, without notifying the user.", colour=discord.Colour.green())
+                                        description=f"DM Channel with {member} has been closed by the moderators of {message.guild.name}, without notifying the user.", colour=discord.Colour.green())
                     embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                     await message.channel.delete()
                     await self.bot.get_channel(modmail_channel_id).send(embed=embed)
@@ -83,29 +83,49 @@ class Modmail(commands.Cog):
                 channel = await member.create_dm()  
                 if message.content == ".close":
                     embed = discord.Embed(title="DM Channel Closed",
-                                        description=f"DM Channel with {member} has been closed by the moderators of r/IGCSE.", colour=discord.Colour.green())
+                                        description=f"DM Channel with {member} has been closed by the moderators of {message.guild.name}.", colour=discord.Colour.green())
                     embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
                     await channel.send(embed=embed)
                     await message.channel.delete()
                     await self.bot.get_channel(modmail_channel_id).send(embed=embed)
                     return
-                embed = discord.Embed(title=f"Message from {message.guild.name} Moderators",
-                                        description=message.clean_content, colour=discord.Colour.green())
-                embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
+                if message.content.startswith(".r "):
+                    embed = discord.Embed(title=f"Message from {message.author.name}({message.guild.name} Moderator)",
+                                            description=message.clean_content, colour=discord.Colour.green())
+                    embed.set_author(name=str(message.author), icon_url=message.author.display_avatar.url)
 
-                try:
-                    await channel.send(embed=embed)
-                    for attachment in message.attachments:
-                        await channel.send(file=await attachment.to_file())
-                    await message.channel.send(embed=embed)
-                except:
-                    perms = message.channel.overwrites_for(member)
-                    perms.send_messages, perms.read_messages, perms.view_channel, perms.read_message_history, perms.attach_files = True, True, True, True, True
-                    await message.channel.set_permissions(member, overwrite=perms)
-                    await message.channel.send(f"{member.mention}")
+                    try:
+                        await channel.send(embed=embed)
+                        for attachment in message.attachments:
+                            await channel.send(file=await attachment.to_file())
+                        await message.channel.send(embed=embed)
+                    except:
+                        perms = message.channel.overwrites_for(member)
+                        perms.send_messages, perms.read_messages, perms.view_channel, perms.read_message_history, perms.attach_files = True, True, True, True, True
+                        await message.channel.set_permissions(member, overwrite=perms)
+                        await message.channel.send(f"{member.mention}")
+                        return
+    
+                    await message.delete()
                     return
+                if message.content.startswith(".ar "):
+                    embed = discord.Embed(title=f"Message from {message.guild.name} Moderators",
+                                            description=message.clean_content, colour=discord.Colour.green())
+                    embed.set_author(name=message.guild.name, icon_url=message.guild.icon)
 
-                await message.delete()
+                    try:
+                        await channel.send(embed=embed)
+                        for attachment in message.attachments:
+                            await channel.send(file=await attachment.to_file())
+                        await message.channel.send(embed=embed)
+                    except:
+                        perms = message.channel.overwrites_for(member)
+                        perms.send_messages, perms.read_messages, perms.view_channel, perms.read_message_history, perms.attach_files = True, True, True, True, True
+                        await message.channel.set_permissions(member, overwrite=perms)
+                        await message.channel.send(f"{member.mention}")
+                        return
+
+                    await message.delete()
     @discord.slash_command(description="Create a modmail thread for a user")
     async def create_modmail(self, interaction: discord.Interaction,
                             user: discord.Member = discord.SlashOption(name="user", description="User to create a modmail thread for", required=True)):
